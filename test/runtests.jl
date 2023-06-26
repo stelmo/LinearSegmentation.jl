@@ -1,6 +1,11 @@
 using LinearSegmentation
 using Test
+using Random
+
+using CairoMakie, GLM # for troubleshooting
+
+include("generatedata.jl")
 
 @testset "LinearSegmentation.jl" begin
-    # Write your tests here.
+    include("slidingwindow.jl")
 end
