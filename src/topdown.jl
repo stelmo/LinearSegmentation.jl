@@ -1,81 +1,89 @@
-# """
-# $(TYPEDSIGNATURES)
+"""
+$(TYPEDSIGNATURES)
 
-# Segment `xs` based on the root mean square error of the fit.
-# """
-# function top_down(
-#     xs,
-#     ys;
-#     min_segment_length = heuristic_min_segment_length(xs),
-#     max_rmse = 0.5,
-#     dx = 1e-6,
-# )
-#     brk_pnts = Int64[]
+Segment `xs` based on the root mean square error of the fit.
+"""
+function top_down(
+    xs,
+    ys;
+    min_segment_length = heuristic_min_segment_length(xs),
+    max_rmse = 0.25,
+)
+    segments = Segment[]
+    sxs = sortperm(xs) # do this once
 
-#     _top_down!(brk_pnts, xs, ys, 1, length(xs), min_segment_length, max_rmse, dx)
+    _top_down!(segments, xs, ys, sxs, 1, length(xs), min_segment_length, max_rmse)
 
-#     segs,
-#     [
-#         linear_segmentation(xs[s.start_idx:s.end_idx], ys[s.start_idx:s.end_idx]) for
-#         s in segs
-#     ]
-# end
+    segments, linear_segmentation(segments, xs, ys)
+end
 
-# function _top_down!(brk_pnts, xs, ys, start_idx, stop_idx, min_segment_length, max_rmse, dx)
+function _top_down!(
+    segments,
+    xs,
+    ys,
+    sxs,
+    start_idx,
+    stop_idx,
+    min_segment_length,
+    max_rmse,
+)
 
-#     if xs[stop_idx] - xs[start_idx]
-#         return nothing
-#     end
 
-#     best_rmse, brk_pnt = _find_optimum_break_point(xs, ys, start_idx, stop_idx, min_segment_length, dx)
+    brkpnt = _find_optimum_break_point(xs, ys, sxs, start_idx, stop_idx, min_segment_length)
+    if isnothing(brkpnt)
+        push!(segments, Segment(sxs[start_idx:stop_idx]))
+        return nothing     
+    end
 
-#     rmse1 = linear_segmentation(xs[start_idx:(brk_pnt-1)], ys[start_idx:(brk_pnt-1)])
-#     rmse2 = linear_segmentation(xs[brk_pnt:stop_idx], ys[brk_pnt:stop_idx])
+    _xs1 = xs[sxs[start_idx:brkpnt]]
+    _ys1 = ys[sxs[start_idx:brkpnt]]
+    ls1 = linear_segmentation(_xs1, _ys1)
 
-#     if rmse1 <= max_rmse
+    _xs2 = xs[sxs[brkpnt:stop_idx]]
+    _ys2 = ys[sxs[brkpnt:stop_idx]]
+    ls2 = linear_segmentation(_xs2, _ys2)
 
-#     # minimum range length =  2 * min_length so that the ranges can be split in two
-#     if best_rmse < max_rmse ||
-#        (length(rng1) < min_length * 2 && length(rng2) < min_length * 2)
-#         push!(rngs, rng1)
-#         push!(rngs, rng2)
-#     elseif length(rng1) < min_length * 2
-#         push!(rngs, rng1)
-#         _top_down!(rngs, first(rng2), last(rng2), min_length, rmse_f; max_rmse)
-#     elseif length(rng2) < min_length * 2
-#         push!(rngs, rng2)
-#         _top_down!(rngs, first(rng1), last(rng1), min_length, rmse_f; max_rmse)
-#     else
-#         _top_down!(rngs, first(rng1), last(rng1), min_length, rmse_f; max_rmse)
-#         _top_down!(rngs, first(rng2), last(rng2), min_length, rmse_f; max_rmse)
-#     end
+    if rmse(ls1) <= max_rmse || !is_min_length(_xs1, min_segment_length)
+        push!(segments, Segment(sxs[start_idx:brkpnt]))
+    else
+        _top_down!(segments, xs, ys, sxs, start_idx, brkpnt, min_segment_length, max_rmse)
+    end
 
-#     nothing
-# end
+    if rmse(ls2) <= max_rmse || !is_min_length(_xs2, min_segment_length)
+        push!(segments, Segment(sxs[brkpnt:stop_idx]))
+    else
+        _top_down!(segments, xs, ys, sxs, brkpnt, stop_idx, min_segment_length, max_rmse)
+    end
 
-# function _find_optimum_break_point(xs, ys, start1_idx, stop2_idx, min_segment_length, dx)
+    nothing
+end
 
-#     stop1_idx = next_interval(start1_idx, xs; dx)
-#     start2_idx = stop1_idx + 1 # must be at least 2 intervals in data
-#     best_rmse = Inf
-#     brk_pnt = start2_idx
-#     while true
-#         if is_min_length(xs[start1_idx:stop1_idx], min_segment_length) &&
-#            is_min_length(xs[start2_idx:stop2_idx], min_segment_length)
+function _find_optimum_break_point(xs, ys, sxs, start1_idx, stop2_idx, min_segment_length)
 
-#             s1f = linear_segmentation(xs[start1_idx:stop1_idx], ys[start1_idx:stop1_idx])
-#             s2f = linear_segmentation(xs[start2_idx:stop2_idx], ys[start2_idx:stop2_idx])
-#             v = (rmse(s1f) + rmse(s2f)) / 2
-#             if v < best_rmse
-#                 best_rmse = v
-#                 brk_pnt = start2_idx
-#             end
-#         end
-#         stop1_idx = next_interval(stop1_idx, xs; dx)
-#         isnothing(stop1_idx) && break
-#         start2_idx = stop1_idx + 1
-#         start2_idx >= stop2_idx && break
-#     end
+    brkpnts = Int64[]
+    losses = Float64[]
+    for current_idx = start1_idx:stop2_idx
 
-#     best_rmse, brk_pnt
-# end
+        _xs1 = xs[sxs[start1_idx:current_idx]]
+        _xs2 = xs[sxs[current_idx:stop2_idx]]
+
+        # both segments need to have at least the minimum length
+        is_min_length(_xs1, min_segment_length) || continue
+        is_min_length(_xs2, min_segment_length) || break
+
+        _ys1 = ys[sxs[start1_idx:current_idx]]
+        _ys2 = ys[sxs[current_idx:stop2_idx]]
+
+        # get minimum loss and break point
+        push!(
+            losses,
+            min(
+                rmse(linear_segmentation(_xs1, _ys1)),
+                rmse(linear_segmentation(_xs2, _ys2)),
+            ),
+        )
+        push!(brkpnts, current_idx)
+    end
+
+    isempty(losses) ? nothing : brkpnts[argmin(losses)]
+end
