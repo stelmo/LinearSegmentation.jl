@@ -31,7 +31,7 @@ function sliding_window(
             start_idx = current_idx - 1
         end
     end
-
+    
     # finish off
     push!(segments, Segment(sxs[start_idx:end]))
 
