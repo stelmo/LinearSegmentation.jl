@@ -5,6 +5,12 @@ Fit a linear model to the data.
 """
 linear_segmentation(xs, ys) = lm([ones(length(xs)) xs], ys)
 
+linear_segmentation(segment::Segment, xs, ys) =
+    linear_segmentation(xs[segment.idxs], ys[segment.idxs])
+
+linear_segmentation(segments::Array{Segment}, xs, ys) =
+    [linear_segmentation(xs[segment.idxs], ys[segment.idxs]) for segment in segments]
+
 """
 $(TYPEDSIGNATURES)
 
