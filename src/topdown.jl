@@ -7,7 +7,7 @@ function top_down(
     xs,
     ys;
     min_segment_length = heuristic_min_segment_length(xs),
-    max_rmse = 0.25,
+    max_rmse = 0.5,
 )
     segments = Segment[]
     sxs = sortperm(xs) # do this once
@@ -32,7 +32,7 @@ function _top_down!(
     brkpnt = _find_optimum_break_point(xs, ys, sxs, start_idx, stop_idx, min_segment_length)
     if isnothing(brkpnt)
         push!(segments, Segment(sxs[start_idx:stop_idx]))
-        return nothing     
+        return nothing
     end
 
     _xs1 = xs[sxs[start_idx:brkpnt]]

@@ -1,6 +1,6 @@
 @testset "Sliding window tests" begin
 
-    segs, fits = sliding_window(xs, ys; min_segment_length = 5.0, max_rmse = 0.5)
+    segs, fits = sliding_window(xs, ys; min_segment_length, max_rmse)
 
     fig = Figure()
     ax = Axis(fig[1, 1])

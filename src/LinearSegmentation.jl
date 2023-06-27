@@ -1,14 +1,13 @@
 module LinearSegmentation
 
-using DocStringExtensions, Statistics, GLM
+using DocStringExtensions, Statistics, GLM, Graphs
 
 # Write your package code here.
 include("types.jl")
 include("utils.jl")
 include("slidingwindow.jl")
 include("topdown.jl")
-# include("bottomup.jl")
-# include("dynprog.jl")
+include("graph_segmentation.jl")
 
 export sliding_window,
     linear_segmentation,
@@ -16,8 +15,9 @@ export sliding_window,
     Segment,
     heuristic_min_segment_length,
     rmse,
-    _find_optimum_break_point,
     top_down,
-    _top_down!
+    least_squares,
+    graph_segmentation,
+    build_digraph
 
 end

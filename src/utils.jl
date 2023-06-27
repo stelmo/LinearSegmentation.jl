@@ -32,3 +32,32 @@ $(TYPEDSIGNATURES)
 Root mean square error of a fit.
 """
 rmse(fit) = sqrt(mean(residuals(fit) .^ 2))
+
+"""
+$(TYPEDSIGNATURES)
+
+Calculate the least squares coefficients.
+"""
+function least_squares(xs, ys)
+    ymean = mean(ys)
+    xmean = mean(xs)
+    b1 =
+        sum((x - xmean) * (y - ymean) for (x, y) in zip(xs, ys)) /
+        sum((x - xmean)^2 for x in xs)
+    b0 = ymean - b1 * xmean
+    b0, b1
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Root mean square error of a fit.
+"""
+rmse(xs, ys, b0, b1) = sqrt(se(xs, ys, b0, b1) / length(xs))
+
+"""
+$(TYPEDSIGNATURES)
+
+Squared error of the fit (the residuals).
+"""
+se(xs, ys, b0, b1) = sum((y - b0 - b1 * x)^2 for (x, y) in zip(xs, ys))

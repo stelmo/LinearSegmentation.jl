@@ -14,7 +14,7 @@ function sliding_window(
     min_segment_length = heuristic_min_segment_length(xs),
     max_rmse = 0.5,
 )
-    sxs = sortperm(xs)
+    sxs = sortperm(xs) # increasing order
 
     segments = Segment[]
 
@@ -28,11 +28,11 @@ function sliding_window(
         lmfit = linear_segmentation(_xs, _ys)
         if rmse(lmfit) >= max_rmse
             push!(segments, Segment(sxs[start_idx:(current_idx-1)]))
-            start_idx = current_idx - 1
+            start_idx = current_idx - 1 # start is previous end
         end
     end
 
-    # finish off
+    # clean up
     push!(segments, Segment(sxs[start_idx:end]))
 
     segments, linear_segmentation(segments, xs, ys)
