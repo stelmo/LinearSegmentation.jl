@@ -9,15 +9,6 @@ include("slidingwindow.jl")
 include("topdown.jl")
 include("graph_segmentation.jl")
 
-export sliding_window,
-    linear_segmentation,
-    is_min_length,
-    Segment,
-    heuristic_min_segment_length,
-    rmse,
-    top_down,
-    least_squares,
-    graph_segmentation,
-    build_digraph
+export sliding_window, top_down, graph_segmentation
 
 end

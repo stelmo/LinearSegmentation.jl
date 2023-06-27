@@ -9,7 +9,7 @@ max_rmse = 0.10
 # generate data
 N = 100
 xs = collect(range(0, 3 * pi, length = N)) .+ 0.1 .* randn(N)
-ys = sin.(xs) .+ 0.5 .* randn(N)
+ys = sin.(xs) .+ 0.1 .* randn(N)
 
 
 # sliding_window
@@ -40,8 +40,8 @@ for (seg, fit) in zip(segs, fits)
 end
 fig
 
-# shortestpath
-segs, fits = graph_segmentation(xs, ys; min_segment_length, max_rmse = 10.0)
+# shortestpath (works less nicely on very noisy data)
+segs, fits = graph_segmentation(xs, ys; min_segment_length, max_rmse = 0.1)
 
 fig = Figure()
 ax = Axis(fig[1, 1])
