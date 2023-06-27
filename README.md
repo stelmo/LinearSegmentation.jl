@@ -36,25 +36,39 @@ ys = sin.(xs) .+ 0.1 .* randn(N)
 ![Raw data to be segmented](imgs/data.png)
 
 # Sliding window
+Starting from `first(xs)` a "window" slides along the x-axis, with data points
+added to this segment until `max_rmse` is reached. Then a new segment is
+created, and the process repeats until the dataset is finished. This algorithm
+is the cheapest to run, but may generate worse fits due to its simplicity.
 ```julia
 segs, fits = sliding_window(xs, ys; min_segment_length=1.2, max_rmse=0.15)
 ```
 ![Sliding window segmentation](imgs/sliding_window.png)
 
 # Top down
+This algorithm recursively splits the data into two parts, attempting to find
+segments that are both long enough, and have a good enough fit (set via the
+kwargs).
 ```julia
 segs, fits = top_down(xs, ys; min_segment_length=1.2, max_rmse=0.15)
 ```
 ![Top down segmentation](imgs/top_down.png)
 
 # Graph segmentation
+This algorithm is my take on the dynamic programming approaches used by the R
+packages listed below. In essence, a weighted directional graph is constructed,
+where each node corresponds to an index of `xs`, and the weight corresponds to
+the rmse of the fit between two nodes (segment length restrictions and maximum
+error are both incorporated). The shortest path that spans `xs` is the found
+with `Graphs.a_star`, and should correspond to the best segmentation.
 ```julia
 segs, fits = graph_segmentation(xs, ys; min_segment_length=1.2, max_rmse=0.15)
 ```
 ![Graph segmentation](imgs/graph_segmentation.png)
 
 # Other useful resources
-1. https://cran.r-project.org/web/packages/dpseg/vignettes/dpseg.html#appi
-2. E. Keogh, S. Chu, D. Hart and M. Pazzani, "An online algorithm for segmenting
+1. https://cran.r-project.org/web/packages/dpseg/vignettes/dpseg.html
+2. https://winvector.github.io/RcppDynProg/
+3. E. Keogh, S. Chu, D. Hart and M. Pazzani, "An online algorithm for segmenting
    time series," Proceedings 2001 IEEE International Conference on Data Mining,
    San Jose, CA, USA, 2001, pp. 289-296, doi: 10.1109/ICDM.2001.989531.
