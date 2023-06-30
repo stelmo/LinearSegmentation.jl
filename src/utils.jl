@@ -61,3 +61,54 @@ $(TYPEDSIGNATURES)
 Squared error of the fit (the residuals).
 """
 se(xs, ys, b0, b1) = sum((y - b0 - b1 * x)^2 for (x, y) in zip(xs, ys))
+
+"""
+$(TYPEDSIGNATURES)
+
+Return an array of tuples for each piecewise linear fit. Only the first and the
+last x and y pair is returned.
+
+# Example
+```
+segs, fits = graph_segmentation(xs, ys)
+for (_xs, _ys) in xygroups(segs, fits, xs)
+    lines!(_xs, _ys) # Makie plotting
+end
+```
+"""
+function xygroups(segs::Array{Segment}, fits, xs)
+    ps = Vector{Tuple{Vector{Float64},Vector{Float64}}}()
+    for (seg, lmfit) in zip(segs, fits)
+        b0, b1 = coef(lmfit)
+        _xs = xs[seg.idxs][[1, end]]
+        _ys = b0 .+ b1 .* _xs
+        push!(ps, (_xs, _ys))
+    end
+    ps
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Return an array of tuples for each piecewise linear fit. The full segment is
+plotted, and lower and upper bounds for the fit at these points is also
+returned. Forwards the kwargs to  `GLM.StatsAPI.predict`.
+
+# Example
+```
+segs, fits = graph_segmentation(xs, ys)
+for (_xs, _ys, _lbs, _ubs) in xyboundgroups(segs, fits, xs)
+    lines!(_xs, _ys) # Makie plotting
+    
+end
+```
+"""
+function xyboundgroups(segs, fits, xs, interval = :prediction, level = 0.95)
+    ps = Vector{Tuple{Vector{Float64},Vector{Float64},Vector{Float64},Vector{Float64}}}()
+    for (seg, lmfit) in zip(segs, fits)
+        _xs = xs[seg.idxs]
+        xybnds = predict(lmfit, [ones(length(_xs)) _xs]; interval, level)
+        push!(ps, (_xs, xybnds.prediction, xybnds.lower, xybnds.upper))
+    end
+    ps
+end

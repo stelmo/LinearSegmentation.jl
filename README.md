@@ -46,6 +46,12 @@ algorithm is the cheapest to run, but may generate worse fits due to its
 simplicity (notice the overshoots in the picture).
 ```julia
 segs, fits = sliding_window(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+
+using CairoMakie
+# skipped some plotting steps
+for (i, (_xs, _ys)) in enumerate(xypairs(segs, fits, xs))
+    lines!(ax, _xs, _ys; color=ColorSchemes.tableau_10[i], linewidth=8)
+end
 ```
 ![Sliding window segmentation](imgs/sliding_window.png)
 
@@ -54,7 +60,15 @@ This algorithm recursively splits the data into two parts, attempting to find
 segments that are both long enough, and have a good enough fit (set via the
 kwargs). In my experience, this is the most robust algorithm, but ymmv.
 ```julia
+using LinearSegmentation, CairoMakie
+
 segs, fits = top_down(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+
+# skipped some plotting steps
+for (i, (_xs, _ys, _lbs, _ubs)) in enumerate(xyboundgroups(segs, fits, xs))
+    lines!(ax, _xs, _ys; color=ColorSchemes.tableau_10[i], linewidth=8)
+    band!(ax, _xs, _lbs, _ubs; color=(ColorSchemes.tableau_10[i], 0.2))
+end
 ```
 ![Top down segmentation](imgs/top_down.png)
 
@@ -69,6 +83,8 @@ with `Graphs.a_star` (see
 the best segmentation.
 ```julia
 segs, fits = graph_segmentation(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+
+# similar plotting as before can be done here...
 ```
 ![Graph segmentation](imgs/graph_segmentation.png)
 

@@ -13,7 +13,7 @@ ys = sin.(xs) .+ 0.1 .* randn(N)
 
 fig = Figure()
 ax = Axis(fig[1, 1])
-scatter!(ax, xs, ys; color=:black)
+scatter!(ax, xs, ys; color = :black)
 fig
 CairoMakie.FileIO.save("imgs/data.png", fig)
 
@@ -22,12 +22,10 @@ segs, fits = sliding_window(xs, ys; min_segment_length, max_rmse)
 
 fig = Figure()
 ax = Axis(fig[1, 1])
-scatter!(ax, xs, ys; color=:black)
+scatter!(ax, xs, ys; color = :black)
 
-for (i, (seg, fit)) in enumerate(zip(segs, fits))
-    _xs = xs[seg.idxs]
-    _ys = first(coef(fit)) .+ _xs .* last(coef(fit))
-    lines!(ax, _xs, _ys; color=ColorSchemes.tableau_10[i], linewidth=8)
+for (i, (_xs, _ys)) in enumerate(xygroups(segs, fits, xs))
+    lines!(ax, _xs, _ys; color = ColorSchemes.tableau_10[i], linewidth = 8)
 end
 fig
 CairoMakie.FileIO.save("imgs/sliding_window.png", fig)
@@ -37,13 +35,12 @@ segs, fits = top_down(xs, ys; min_segment_length, max_rmse)
 
 fig = Figure()
 ax = Axis(fig[1, 1])
-scatter!(ax, xs, ys; color=:black)
 
-for (i, (seg, fit)) in enumerate(zip(segs, fits))
-    _xs = xs[seg.idxs]
-    _ys = first(coef(fit)) .+ _xs .* last(coef(fit))
-    lines!(ax, _xs, _ys; color=ColorSchemes.tableau_10[i], linewidth=8)
+for (i, (_xs, _ys, _lbs, _ubs)) in enumerate(xyboundgroups(segs, fits, xs))
+    lines!(ax, _xs, _ys; color = ColorSchemes.tableau_10[i], linewidth = 8)
+    band!(ax, _xs, _lbs, _ubs; color = (ColorSchemes.tableau_10[i], 0.2))
 end
+scatter!(ax, xs, ys; color = :black)
 fig
 CairoMakie.FileIO.save("imgs/top_down.png", fig)
 
@@ -52,12 +49,12 @@ segs, fits = graph_segmentation(xs, ys; min_segment_length, max_rmse)
 
 fig = Figure()
 ax = Axis(fig[1, 1])
-scatter!(ax, xs, ys; color=:black)
+scatter!(ax, xs, ys; color = :black)
 
 for (i, (seg, fit)) in enumerate(zip(segs, fits))
     _xs = xs[seg.idxs]
     _ys = first(coef(fit)) .+ _xs .* last(coef(fit))
-    lines!(ax, _xs, _ys; color=ColorSchemes.tableau_10[i], linewidth=8)
+    lines!(ax, _xs, _ys; color = ColorSchemes.tableau_10[i], linewidth = 8)
 end
 fig
 CairoMakie.FileIO.save("imgs/graph_segmentation.png", fig)

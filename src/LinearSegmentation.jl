@@ -9,6 +9,6 @@ include("slidingwindow.jl")
 include("topdown.jl")
 include("graph_segmentation.jl")
 
-export sliding_window, top_down, graph_segmentation
+export sliding_window, top_down, graph_segmentation, xygroups, xyboundgroups
 
 end
