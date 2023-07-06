@@ -10,7 +10,7 @@ piecewise linear functions to data, and simultaneously estimating the best
 breakpoints. Three algorithm are implemented, `sliding_window`, `top_down`, and
 `graph_segmentation`.
 
-Convenience functions `xypairs` and `xyboundgroups` are also supplied to make
+Convenience functions `xygroups` and `xyboundgroups` are also supplied to make
 plotting easier.
 
 ## Interface
