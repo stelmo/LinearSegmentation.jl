@@ -25,8 +25,8 @@ function sliding_window(
 
         is_min_length(_xs, min_segment_length) || continue
 
-        lmfit = linear_segmentation(_xs, _ys)
-        if rmse(lmfit) >= max_rmse
+        lmfit = rmse(_xs, _ys, least_squares(xs, ys)...)
+        if lmfit >= max_rmse
             push!(segments, Segment(sxs[start_idx:(current_idx-1)]))
             start_idx = current_idx - 1 # start is previous end
         end

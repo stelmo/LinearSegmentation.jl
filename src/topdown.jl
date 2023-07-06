@@ -37,19 +37,19 @@ function _top_down!(
 
     _xs1 = xs[sxs[start_idx:brkpnt]]
     _ys1 = ys[sxs[start_idx:brkpnt]]
-    ls1 = linear_segmentation(_xs1, _ys1)
+    ls1 = rmse(_xs1, _ys1, least_squares(_xs1, _ys1)...)
 
     _xs2 = xs[sxs[brkpnt:stop_idx]]
     _ys2 = ys[sxs[brkpnt:stop_idx]]
-    ls2 = linear_segmentation(_xs2, _ys2)
+    ls2 = rmse(_xs2, _ys2, least_squares(_xs2, _ys2)...)
 
-    if rmse(ls1) <= max_rmse || !is_min_length(_xs1, min_segment_length)
+    if ls1 <= max_rmse || !is_min_length(_xs1, min_segment_length)
         push!(segments, Segment(sxs[start_idx:brkpnt]))
     else
         _top_down!(segments, xs, ys, sxs, start_idx, brkpnt, min_segment_length, max_rmse)
     end
 
-    if rmse(ls2) <= max_rmse || !is_min_length(_xs2, min_segment_length)
+    if ls2 <= max_rmse || !is_min_length(_xs2, min_segment_length)
         push!(segments, Segment(sxs[brkpnt:stop_idx]))
     else
         _top_down!(segments, xs, ys, sxs, brkpnt, stop_idx, min_segment_length, max_rmse)
@@ -78,8 +78,8 @@ function _find_optimum_break_point(xs, ys, sxs, start1_idx, stop2_idx, min_segme
         push!(
             losses,
             min(
-                rmse(linear_segmentation(_xs1, _ys1)),
-                rmse(linear_segmentation(_xs2, _ys2)),
+                rmse(_xs1, _ys1, least_squares(_xs1, _ys1)...),
+                rmse(_xs2, _ys2, least_squares(_xs2, _ys2)...),
             ),
         )
         push!(brkpnts, current_idx)
