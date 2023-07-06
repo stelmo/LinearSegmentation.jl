@@ -10,6 +10,9 @@ piecewise linear functions to data, and simultaneously estimating the best
 breakpoints. Three algorithm are implemented, `sliding_window`, `top_down`, and
 `graph_segmentation`.
 
+Convenience functions `xypairs` and `xyboundgroups` are also supplied to make
+plotting easier.
+
 ## Interface
 ```julia
 using LinearSegmentation
@@ -39,17 +42,17 @@ ys = sin.(xs) .+ 0.1 .* randn(N)
 ![Raw data to be segmented](imgs/data.png)
 
 ## Sliding window
-Starting from `first(xs)` a "window" slides along the x-axis, with data points
-added to this segment until the fit error reaches `max_rmse`. Then a new segment
-is created, and the process repeats until the dataset is finished. This
-algorithm is the cheapest to run, but may generate worse fits due to its
-simplicity (notice the overshoots in the picture).
+Initially an empty segment is made, and a "window" slides along the x-axis, with
+data points added to this segment until the fit error reaches `max_rmse`. Then a
+new segment is created, and the process repeats until the dataset is finished.
+This algorithm is the cheapest to run, but may generate worse fits due to its
+simplicity.
 ```julia
 segs, fits = sliding_window(xs, ys; min_segment_length=1.2, max_rmse=0.15)
 
 using CairoMakie
 # skipped some plotting steps
-for (i, (_xs, _ys)) in enumerate(xypairs(segs, fits, xs))
+for (i, (_xs, _ys)) in enumerate(xygroups(segs, fits, xs))
     lines!(ax, _xs, _ys; color=ColorSchemes.tableau_10[i], linewidth=8)
 end
 ```

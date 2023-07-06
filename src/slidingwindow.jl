@@ -3,10 +3,22 @@ $(TYPEDSIGNATURES)
 
 Segment `xs` into sections, which are at least longer than `min_segment_length`,
 and that have a root mean squared error (based on a linear fit) less than
-`max_rmse`. 
-    
+`max_rmse`. Uses a sliding window approach to segment the data: initially an
+empty segment is made, and data added to it until `max_rmse` is reached. Then a
+new segment is made, and the process repeats until the data is exhausted.
+
+Sorts data internally as a precomputation step. Fastest segmentation algorithm
+implemented, but also the least accurate.
+
 Returns an array of [`Segment`](@ref)s and an array of `LinearModel`s from
 GLM.jl corresponding to these segments.
+
+# Example
+```
+segs, fits = sliding_window(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+```
+
+See also: [`top_down`](@ref), [`graph_segmentation`](@ref).
 """
 function sliding_window(
     xs,

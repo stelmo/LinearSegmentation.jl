@@ -1,3 +1,28 @@
+"""
+$(TYPEDSIGNATURES)
+
+Segment `xs` into sections based on the root mean square error using `ys`.
+Builds a directed graph where nodes are the x-data points, and the edges are the
+root mean square error of fitting a linear model between these nodes. Nodes are
+connected only if their minimum length is greater than `min_segment_length` and
+the error between them is less than `max_rmse`. Thereafter, the path spanning
+the entire dataset with the lowest total error is found using the A-star
+algorithm. This more-or-less corresponds to a the dynamic programming approach
+used by other segmentation algorithms. 
+
+Sorts data internally as a precomputation step. This is the slowest algorithm,
+but *should* return the optimal segmentation.
+
+Returns an array of [`Segment`](@ref)s, and an array of `LinearModel`s from
+GLM.jl corresponding to these segments.
+
+# Example
+```
+segs, fits = graph_segmentation(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+```
+
+See also: [`sliding_window`](@ref), [`top_down`](@ref).
+"""
 function graph_segmentation(
     xs,
     ys;

@@ -1,7 +1,21 @@
 """
 $(TYPEDSIGNATURES)
 
-Segment `xs` based on the root mean square error of the fit.
+Segment `xs` based on the root mean square error of a linear fit using `ys`.
+Recursively splits the data into two parts with the lowest root mean square
+error, while obeying the minimum segment length restrictions from
+`min_segment_length`, and maximum allowed error from `max_rmse`. Sorts data
+internally as a precomputation step.
+
+Returns an array of [`Segment`](@ref)s, and an array of `LinearModel`s from
+GLM.jl corresponding to these segments.
+
+# Example
+```
+segs, fits = top_down(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+```
+
+See also: [`sliding_window`](@ref), [`graph_segmentation`](@ref).
 """
 function top_down(
     xs,
