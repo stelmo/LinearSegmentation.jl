@@ -61,7 +61,7 @@ end
 ## Top down
 This algorithm recursively splits the data into two parts, attempting to find
 segments that are both long enough, and have a good enough fit (set via the
-kwargs). In my experience, this is the most robust algorithm, but ymmv.
+kwargs).
 ```julia
 using LinearSegmentation, CairoMakie
 
