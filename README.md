@@ -17,24 +17,27 @@ plotting easier.
 ```julia
 using LinearSegmentation
 
-segments, glm_fits = segmentation_function(
+segments = segmentation_function(
     x_values, 
     y_values; 
     min_segment_length = minimum_segment_x_length, 
-    max_rmse = maximum_root_mean_squared_error,
+    fit_threshold = minimum_r2,
+    fit_function = :r2,
     overlap = true,
 )
 ```
-Where each `segment` in `segments` is a type of `LinearSegmentation.Segment`,
-which contains all the indices of `x_values` used in the `segment`.
-Corresponding to each `segment` is a `GLM.LinearModel` (see
+Where each entry in `segments` is a tuple of indices of `x_values` used in the
+segment, and a `GLM.LinearModel` (see
 [GLM.jl](https://github.com/JuliaStats/GLM.jl)), which is the fitted linear
-model to the `segment`. Minimum segment lengths are specified with
-`min_segment_length` and maximum allowed root mean square error for a segment is
-set with `max_rmse`. Both of these kwargs have large effects on the segmentation
---- play around to see what works best for your data. By default, the end of a
-segment is also the start of the next segment, but this can be changed by
-setting `overlap` to `false` (resulting in disjoint segmentations).
+model to that segment. Minimum segment lengths are specified with
+`min_segment_length`. By default, the goodness-of-fit is measured using the
+coefficient of determination. Each segment must have a minimum R² of
+`fit_threshold`. Root mean squared error can also be used by setting
+`fit_function = :rmse`, and adjusting `fit_threshold` to a dataset dependent
+error threshold. In this case, the root mean squared error must be smaller than
+`fit_threshold` for each segment. By default, the end of a segment is also the
+start of the next segment, but this can be changed by setting `overlap` to
+`false` (resulting in disjoint segmentations).
 
 ## Generate some data
 ```julia
@@ -45,17 +48,17 @@ ys = sin.(xs) .+ 0.1 .* randn(N)
 ![Raw data to be segmented](imgs/data.png)
 
 ## Sliding window
-Initially an empty segment is made, and a "window" slides along the x-axis, with
-data points added to this segment until the fit error reaches `max_rmse`. Then a
-new segment is created, and the process repeats until the dataset is finished.
-This algorithm is the cheapest to run, but may generate worse fits due to its
+Uses a sliding window approach to segment the data: initially an empty segment
+is made, and data added to it until `fit_threshold` is reached. Then a new
+segment is made, and the process repeats until the data is exhausted. This
+algorithm is the cheapest to run, but may generate worse fits due to its
 simplicity.
 ```julia
-segs, fits = sliding_window(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+segments = sliding_window(xs, ys; min_segment_length=1.2)
 
 using CairoMakie
 # skipped some plotting steps
-for (i, (_xs, _ys)) in enumerate(xygroups(segs, fits, xs))
+for (i, (_xs, _ys)) in enumerate(xygroups(segments, xs))
     lines!(ax, _xs, _ys; color=ColorSchemes.tableau_10[i], linewidth=8)
 end
 ```

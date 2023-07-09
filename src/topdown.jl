@@ -1,20 +1,28 @@
 """
 $(TYPEDSIGNATURES)
 
-Segment `xs` based on the root mean square error of a linear fit using `ys`.
-Recursively splits the data into two parts with the lowest root mean square
-error, while obeying the minimum segment length restrictions from
-`min_segment_length`, and maximum allowed error from `max_rmse`. Sorts data
-internally as a precomputation step.  By default, the end of a segment is also
-the start of the next segment, but this can be changed by setting `overlap` to
-`false` (resulting in disjoint segmentations).
+Partition `xs` into segments that are at least longer than `min_segment_length`,
+and that have a fit better than `fit_threshold`. By default, the goodness-of-fit
+is measured using the coefficient of determination. Each segment must have a
+minimum R² of `fit_threshold`. Root mean squared error can also be used by
+setting `fit_function = :rmse`, and adjusting `fit_threshold` to a dataset
+dependent error threshold. In this case, the root mean squared error must be
+smaller than `fit_threshold`.
 
-Returns an array of [`Segment`](@ref)s, and an array of `LinearModel`s from
-GLM.jl corresponding to these segments.
+Recursively splits the data into two parts with the best fit according to
+`fit_function`, while obeying the minimum segment length restrictions from
+`min_segment_length`, and goodness-off-fit restrictions from `fit_threshold`.
+Sorts data internally as a precomputation step.  By default, the end of a
+segment is also the start of the next segment, but this can be changed by
+setting `overlap` to `false` (resulting in disjoint segmentations).
+
+Returns an array of tuples `[(idxs1, linmod1), ...]`, where `idxs1` are the
+indices of `xs` in the segment, and `linmod1` is the corresponding `LinearModel`
+from GLM.jl.
 
 # Example
 ```
-segs, fits = top_down(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+segments = top_down(xs, ys; min_segment_length=1.2)
 ```
 
 See also: [`sliding_window`](@ref), [`shortest_path`](@ref).
@@ -23,15 +31,16 @@ function top_down(
     xs,
     ys;
     min_segment_length = heuristic_min_segment_length(xs),
-    max_rmse = 0.5,
+    fit_threshold = 0.9,
+    fit_function = :r2,
     overlap = true,
 )
-    segments = Segment[]
+    segments = Vector{Vector{Int64}}()
     sxs = sortperm(xs) # do this once
 
-    _top_down!(segments, xs, ys, sxs, 1, length(xs), min_segment_length, max_rmse, overlap)
+    _top_down!(segments, xs, ys, sxs, 1, length(xs), min_segment_length, fit_threshold, fit_function, overlap)
 
-    segments, linear_segmentation(segments, xs, ys)
+    [(seg, linear_segmentation(seg, xs, ys)) for seg in segments]
 end
 
 function _top_down!(
@@ -42,7 +51,8 @@ function _top_down!(
     start_idx,
     stop_idx,
     min_segment_length,
-    max_rmse,
+    fit_threshold,
+    fit_function,
     overlap,
 )
 
@@ -54,11 +64,12 @@ function _top_down!(
         start_idx,
         stop_idx,
         min_segment_length,
+        fit_function,
         overlap,
     )
 
     if isnothing(brkpnt1)
-        push!(segments, Segment(sxs[start_idx:stop_idx]))
+        push!(segments, sxs[start_idx:stop_idx])
         return nothing
     end
 
@@ -66,14 +77,17 @@ function _top_down!(
 
     _xs1 = xs[sxs[start_idx:brkpnt1]]
     _ys1 = ys[sxs[start_idx:brkpnt1]]
-    ls1 = rmse(_xs1, _ys1, least_squares(_xs1, _ys1)...)
+    ls1, threshold = fit_function == :r2 ?
+        (-rsquared(_xs1, _ys1, least_squares(_xs1, _ys1)...), -fit_threshold) :
+        (rmse(_xs1, _ys1, least_squares(_xs1, _ys1)...), fit_threshold)
+
 
     _xs2 = xs[sxs[brkpnt2:stop_idx]]
     _ys2 = ys[sxs[brkpnt2:stop_idx]]
-    ls2 = rmse(_xs2, _ys2, least_squares(_xs2, _ys2)...)
+    ls2 = fit_function == :r2 ? -rsquared(_xs2, _ys2, least_squares(_xs1, _ys1)...) : rmse(_xs2, _ys2, least_squares(_xs2, _ys2)...)
 
-    if ls1 <= max_rmse || !is_min_length(_xs1, min_segment_length)
-        push!(segments, Segment(sxs[start_idx:brkpnt1]))
+    if ls1 <= threshold || !is_min_length(_xs1, min_segment_length)
+        push!(segments, sxs[start_idx:brkpnt1])
     else
         _top_down!(
             segments,
@@ -83,13 +97,14 @@ function _top_down!(
             start_idx,
             brkpnt1,
             min_segment_length,
-            max_rmse,
+            fit_threshold,
+            fit_function,
             overlap,
         )
     end
 
-    if ls2 <= max_rmse || !is_min_length(_xs2, min_segment_length)
-        push!(segments, Segment(sxs[brkpnt2:stop_idx]))
+    if ls2 <= threshold || !is_min_length(_xs2, min_segment_length)
+        push!(segments, sxs[brkpnt2:stop_idx])
     else
         _top_down!(
             segments,
@@ -99,7 +114,8 @@ function _top_down!(
             brkpnt2,
             stop_idx,
             min_segment_length,
-            max_rmse,
+            fit_threshold,
+            fit_function,
             overlap,
         )
     end
@@ -114,6 +130,7 @@ function _find_optimum_break_point(
     start1_idx,
     stop2_idx,
     min_segment_length,
+    fit_function,
     overlap,
 )
 
@@ -134,11 +151,14 @@ function _find_optimum_break_point(
         _ys2 = ys[sxs[current_idx2:stop2_idx]]
 
         # get minimum loss and break point
+        v1 = fit_function == :r2 ? -rsquared(_xs1, _ys1, least_squares(_xs1, _ys1)...) : rmse(_xs1, _ys1, least_squares(_xs1, _ys1)...)
+        v2 = fit_function == :r2 ? -rsquared(_xs2, _ys2, least_squares(_xs2, _ys2)...) : rmse(_xs2, _ys2, least_squares(_xs2, _ys2)...)
+
         push!(
             losses,
             min(
-                rmse(_xs1, _ys1, least_squares(_xs1, _ys1)...),
-                rmse(_xs2, _ys2, least_squares(_xs2, _ys2)...),
+                v1,
+                v2,
             ),
         )
         push!(brkpnts, current_idx1)
