@@ -17,7 +17,6 @@ ys = sin.(xs)
 
 @testset "LinearSegmentation.jl" begin
     @testset "Internals" begin
-        include("types.jl")
         include("utils.jl")
     end
 

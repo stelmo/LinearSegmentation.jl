@@ -1,11 +1,36 @@
 @testset "Sliding window tests" begin
+    # test r2
+    segments = sliding_window(
+        xs,
+        ys;
+        min_segment_length,
+        # fit_threshold = 0.9,
+    )
 
-    segs, fits = sliding_window(xs, ys; min_segment_length, max_rmse)
+    @test length(segments) == 4
+    @test isapprox(r2(last(last(segments))), 0.9926778131496851; atol)
+    @test N != length(reduce(vcat, [first(seg) for seg in segments]))
 
-    @test length(segs) == 10
-    @test isapprox(first(residuals(last(fits))), -0.02543526961307041; atol)
-    @test N != length(reduce(vcat, [seg.idxs for seg in segs]))
+    # test root mean square
+    segments = sliding_window(
+        xs,
+        ys;
+        min_segment_length,
+        fit_threshold = max_rmse,
+        fit_function = :rmse,
+    )
 
-    segs, fits = top_down(xs, ys; min_segment_length, max_rmse, overlap = false)
-    @test N == length(reduce(vcat, [seg.idxs for seg in segs]))
+    @test length(segments) == 4
+    @test isapprox(first(residuals(last(last(segments)))), -0.13477208456216216; atol)
+    @test N != length(reduce(vcat, [first(seg) for seg in segments]))
+
+    segments = sliding_window(
+        xs,
+        ys;
+        min_segment_length,
+        fit_threshold = max_rmse,
+        fit_function = :rmse,
+        overlap = false,
+    )
+    @test N == length(reduce(vcat, [first(seg) for seg in segments]))
 end

@@ -5,11 +5,10 @@ Fit a linear model to the data.
 """
 linear_segmentation(xs, ys) = lm([ones(length(xs)) xs], ys)
 
-linear_segmentation(segment::Segment, xs, ys) =
-    linear_segmentation(xs[segment.idxs], ys[segment.idxs])
+linear_segmentation(idxs::Vector{Int64}, xs, ys) = linear_segmentation(xs[idxs], ys[idxs])
 
-linear_segmentation(segments::Array{Segment}, xs, ys) =
-    [linear_segmentation(xs[segment.idxs], ys[segment.idxs]) for segment in segments]
+linear_segmentation(segments::Vector{Vector{Int64}}, xs, ys) =
+    [linear_segmentation(idxs, xs, ys) for idxs in segments]
 
 """
 $(TYPEDSIGNATURES)
@@ -25,13 +24,6 @@ Guess an appropriate minimum segment length, which is the squareroot of the
 standard deviation of `xs`.
 """
 heuristic_min_segment_length(xs) = sqrt(std(xs))
-
-"""
-$(TYPEDSIGNATURES)
-
-Root mean square error of a fit.
-"""
-rmse(fit) = sqrt(mean(residuals(fit) .^ 2))
 
 """
 $(TYPEDSIGNATURES)
@@ -65,24 +57,35 @@ se(xs, ys, b0, b1) = sum((y - b0 - b1 * x)^2 for (x, y) in zip(xs, ys))
 """
 $(TYPEDSIGNATURES)
 
+Calculate the coefficient of determination (R²) for a linear fit of `b0`, `b1`
+on `xs` and `ys`.
+"""
+function rsquared(xs, ys, b0, b1)
+    ymean = mean(ys)
+    1 - sum((y - b0 - b1 * x)^2 for (x, y) in zip(xs, ys)) / sum((y - ymean)^2 for y in ys)
+end
+
+"""
+$(TYPEDSIGNATURES)
+
 Return an array of tuples for each piecewise linear fit. Only the first and last
 x and y pair is returned since the fit is a straight line.
 
 # Example
 ```
-segs, fits = shortest_path(xs, ys)
-for (_xs, _ys) in xygroups(segs, fits, xs)
+segments = shortest_path(xs, ys)
+for (_xs, _ys) in xygroups(segments, xs)
     lines!(ax, _xs, _ys) # Makie plotting
 end
 ```
 
 See also: [`xyboundgroups`](@ref).
 """
-function xygroups(segs::Array{Segment}, fits, xs)
+function xygroups(segments, xs)
     ps = Vector{Tuple{Vector{Float64},Vector{Float64}}}()
-    for (seg, lmfit) in zip(segs, fits)
+    for (idxs, lmfit) in segments
         b0, b1 = coef(lmfit)
-        _xs = xs[seg.idxs][[1, end]]
+        _xs = xs[idxs][[1, end]]
         _ys = b0 .+ b1 .* _xs
         push!(ps, (_xs, _ys))
     end
@@ -99,8 +102,8 @@ information returned.
 
 # Example
 ```
-segs, fits = shortest_path(xs, ys)
-for (_xs, _ys, _lbs, _ubs) in xyboundgroups(segs, fits, xs)
+segments = shortest_path(xs, ys)
+for (_xs, _ys, _lbs, _ubs) in xyboundgroups(segments, xs)
     lines!(ax, _xs, _ys) # Makie plotting
     band!(ax, _xs, _lbs, _ubs)
 end
@@ -108,10 +111,10 @@ end
 
 See also: [`xygroups`](@ref).
 """
-function xyboundgroups(segs, fits, xs; interval = :prediction, level = 0.95)
+function xyboundgroups(segments, xs; interval = :prediction, level = 0.95)
     ps = Vector{Tuple{Vector{Float64},Vector{Float64},Vector{Float64},Vector{Float64}}}()
-    for (seg, lmfit) in zip(segs, fits)
-        _xs = xs[seg.idxs]
+    for (idxs, lmfit) in segments
+        _xs = xs[idxs]
         xybnds = predict(lmfit, [ones(length(_xs)) _xs]; interval, level)
         push!(ps, (_xs, xybnds.prediction, xybnds.lower, xybnds.upper))
     end
