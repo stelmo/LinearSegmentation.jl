@@ -71,10 +71,10 @@ kwargs).
 ```julia
 using LinearSegmentation, CairoMakie
 
-segs, fits = top_down(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+segments = top_down(xs, ys; min_segment_length=1.2)
 
 # skipped some plotting steps
-for (i, (_xs, _ys, _lbs, _ubs)) in enumerate(xyboundgroups(segs, fits, xs))
+for (i, (_xs, _ys, _lbs, _ubs)) in enumerate(xyboundgroups(segments, xs))
     lines!(ax, _xs, _ys; color=ColorSchemes.tableau_10[i], linewidth=8)
     band!(ax, _xs, _lbs, _ubs; color=(ColorSchemes.tableau_10[i], 0.2))
 end

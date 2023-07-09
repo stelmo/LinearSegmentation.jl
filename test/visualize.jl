@@ -39,20 +39,19 @@ fig
 CairoMakie.FileIO.save("imgs/sliding_window.png", fig)
 
 # topdown
-
 fig = Figure()
 ax = Axis(fig[1, 1], title = "overlap=true")
 
-segs, fits = top_down(xs, ys; min_segment_length, max_rmse, overlap = true)
-for (i, (_xs, _ys, _lbs, _ubs)) in enumerate(xyboundgroups(segs, fits, xs))
+segments = top_down(xs, ys; min_segment_length, overlap = true)
+for (i, (_xs, _ys, _lbs, _ubs)) in enumerate(xyboundgroups(segments, xs))
     lines!(ax, _xs, _ys; color = ColorSchemes.tableau_10[i], linewidth = 8)
     band!(ax, _xs, _lbs, _ubs; color = (ColorSchemes.tableau_10[i], 0.2))
 end
 scatter!(ax, xs, ys; color = :black)
 
 ax2 = Axis(fig[1, 2], title = "overlap=false")
-segs, fits = top_down(xs, ys; min_segment_length, max_rmse, overlap = false)
-for (i, (_xs, _ys, _lbs, _ubs)) in enumerate(xyboundgroups(segs, fits, xs))
+segments = top_down(xs, ys; min_segment_length, overlap = false)
+for (i, (_xs, _ys, _lbs, _ubs)) in enumerate(xyboundgroups(segments, xs))
     lines!(ax2, _xs, _ys; color = ColorSchemes.tableau_10[i], linewidth = 8)
     band!(ax2, _xs, _lbs, _ubs; color = (ColorSchemes.tableau_10[i], 0.2))
 end
