@@ -38,7 +38,18 @@ function top_down(
     segments = Vector{Vector{Int64}}()
     sxs = sortperm(xs) # do this once
 
-    _top_down!(segments, xs, ys, sxs, 1, length(xs), min_segment_length, fit_threshold, fit_function, overlap)
+    _top_down!(
+        segments,
+        xs,
+        ys,
+        sxs,
+        1,
+        length(xs),
+        min_segment_length,
+        fit_threshold,
+        fit_function,
+        overlap,
+    )
 
     [(seg, linear_segmentation(seg, xs, ys)) for seg in segments]
 end
@@ -77,14 +88,17 @@ function _top_down!(
 
     _xs1 = xs[sxs[start_idx:brkpnt1]]
     _ys1 = ys[sxs[start_idx:brkpnt1]]
-    ls1, threshold = fit_function == :r2 ?
+    ls1, threshold =
+        fit_function == :r2 ?
         (-rsquared(_xs1, _ys1, least_squares(_xs1, _ys1)...), -fit_threshold) :
         (rmse(_xs1, _ys1, least_squares(_xs1, _ys1)...), fit_threshold)
 
 
     _xs2 = xs[sxs[brkpnt2:stop_idx]]
     _ys2 = ys[sxs[brkpnt2:stop_idx]]
-    ls2 = fit_function == :r2 ? -rsquared(_xs2, _ys2, least_squares(_xs1, _ys1)...) : rmse(_xs2, _ys2, least_squares(_xs2, _ys2)...)
+    ls2 =
+        fit_function == :r2 ? -rsquared(_xs2, _ys2, least_squares(_xs1, _ys1)...) :
+        rmse(_xs2, _ys2, least_squares(_xs2, _ys2)...)
 
     if ls1 <= threshold || !is_min_length(_xs1, min_segment_length)
         push!(segments, sxs[start_idx:brkpnt1])
@@ -151,16 +165,14 @@ function _find_optimum_break_point(
         _ys2 = ys[sxs[current_idx2:stop2_idx]]
 
         # get minimum loss and break point
-        v1 = fit_function == :r2 ? -rsquared(_xs1, _ys1, least_squares(_xs1, _ys1)...) : rmse(_xs1, _ys1, least_squares(_xs1, _ys1)...)
-        v2 = fit_function == :r2 ? -rsquared(_xs2, _ys2, least_squares(_xs2, _ys2)...) : rmse(_xs2, _ys2, least_squares(_xs2, _ys2)...)
+        v1 =
+            fit_function == :r2 ? -rsquared(_xs1, _ys1, least_squares(_xs1, _ys1)...) :
+            rmse(_xs1, _ys1, least_squares(_xs1, _ys1)...)
+        v2 =
+            fit_function == :r2 ? -rsquared(_xs2, _ys2, least_squares(_xs2, _ys2)...) :
+            rmse(_xs2, _ys2, least_squares(_xs2, _ys2)...)
 
-        push!(
-            losses,
-            min(
-                v1,
-                v2,
-            ),
-        )
+        push!(losses, min(v1, v2))
         push!(brkpnts, current_idx1)
     end
 

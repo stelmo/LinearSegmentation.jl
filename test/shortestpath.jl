@@ -1,11 +1,28 @@
-@testset "Graph segmentation" begin
+@testset "Shortest path" begin
+    #r2
+    segments = shortest_path(xs, ys; min_segment_length)
+    @test length(segments) == 4
+    @test isapprox(r2(last(last(segments))), 0.9787001222049421; atol)
 
-    segs, fits = shortest_path(xs, ys; min_segment_length, max_rmse)
+    # rmse
+    segments = shortest_path(
+        xs,
+        ys;
+        min_segment_length,
+        fit_threshold = max_rmse,
+        fit_function = :rmse,
+    )
+    @test length(segments) == 4
+    @test isapprox(first(residuals(last(last(segments)))), -0.13477208456216216; atol)
+    @test N != length(reduce(vcat, [first(seg) for seg in segments]))
 
-    @test length(segs) == 7
-    @test isapprox(first(residuals(last(fits))), -0.04646376702868438; atol)
-    @test N != length(reduce(vcat, [seg.idxs for seg in segs]))
-
-    segs, fits = shortest_path(xs, ys; min_segment_length, max_rmse, overlap = false)
-    @test N == length(reduce(vcat, [seg.idxs for seg in segs]))
+    segments = shortest_path(
+        xs,
+        ys;
+        min_segment_length,
+        fit_threshold = max_rmse,
+        fit_function = :rmse,
+        overlap = false,
+    )
+    @test N == length(reduce(vcat, [first(seg) for seg in segments]))
 end

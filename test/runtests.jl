@@ -20,7 +20,7 @@ ys = sin.(xs)
         include("utils.jl")
     end
 
-    @testset "Segmentation " begin
+    @testset "Segmentation" begin
         include("slidingwindow.jl")
         include("topdown.jl")
         include("shortestpath.jl")

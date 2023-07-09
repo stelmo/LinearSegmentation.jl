@@ -1,4 +1,4 @@
-@testset "Sliding window tests" begin
+@testset "Sliding window" begin
     # test r2
     segments = sliding_window(
         xs,

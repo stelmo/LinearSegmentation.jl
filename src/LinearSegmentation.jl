@@ -6,12 +6,8 @@ using DocStringExtensions, Statistics, GLM, Graphs
 include("utils.jl")
 include("slidingwindow.jl")
 include("topdown.jl")
-# include("shortestpath.jl")
+include("shortestpath.jl")
 
-export sliding_window,
-    top_down, 
-    # shortest_path, 
-    xygroups,
-    xyboundgroups
+export sliding_window, top_down, shortest_path, xygroups, xyboundgroups
 
 end

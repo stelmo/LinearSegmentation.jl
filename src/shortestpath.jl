@@ -1,26 +1,35 @@
 """
 $(TYPEDSIGNATURES)
 
-Segment `xs` into sections based on the root mean square error using `ys`.
-Builds a directed graph where nodes are the x-data points, and the edges are the
-root mean square error of fitting a linear model between these nodes. Nodes are
-connected only if their minimum length is greater than `min_segment_length` and
-the error between them is less than `max_rmse`. By default, the end of a segment
-is also the start of the next segment, but this can be changed by setting
-`overlap` to `false` (resulting in disjoint segmentations). Thereafter, the path
-spanning the entire dataset with the lowest total error is found using the
-A-star algorithm. This more-or-less corresponds to a the dynamic programming
-approach used by other segmentation algorithms. 
+
+Partition `xs` into segments that are at least longer than `min_segment_length`,
+and that have a fit better than `fit_threshold`. By default, the goodness-of-fit
+is measured using the coefficient of determination. Each segment must have a
+minimum R² of `fit_threshold`. Root mean squared error can also be used by
+setting `fit_function = :rmse`, and adjusting `fit_threshold` to a dataset
+dependent error threshold. In this case, the root mean squared error must be
+smaller than `fit_threshold`.
+
+Builds a directed graph where nodes are the x-data points, and the edge weights
+are the goodness-of-fit measure associated with a linear model between these
+nodes. Nodes are connected only if their minimum length is greater than
+`min_segment_length`, and the goodness-of-fit better than `fit_threshold`. By
+default, the end of a segment is also the start of the next segment, but this
+can be changed by setting `overlap` to `false` (resulting in disjoint
+segmentations). Thereafter, the shortest weighted path spanning the entire
+dataset is found using the A-star algorithm. This more-or-less corresponds to
+the dynamic programming approach used by other segmentation algorithms. 
 
 Sorts data internally as a precomputation step. This is the slowest algorithm,
 but *should* return the optimal segmentation.
 
-Returns an array of [`Segment`](@ref)s, and an array of `LinearModel`s from
-GLM.jl corresponding to these segments.
+Returns an array of tuples `[(idxs1, linmod1), ...]`, where `idxs1` are the
+indices of `xs` in the segment, and `linmod1` is the corresponding `LinearModel`
+from GLM.jl.
 
 # Example
 ```
-segs, fits = shortest_path(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+segments = shortest_path(xs, ys; min_segment_length=1.2)
 ```
 
 See also: [`sliding_window`](@ref), [`top_down`](@ref).
@@ -29,14 +38,22 @@ function shortest_path(
     xs,
     ys;
     min_segment_length = heuristic_min_segment_length(xs),
-    max_rmse = 0.5,
+    fit_threshold = 0.9,
+    fit_function = :r2,
     overlap = true,
 )
 
-    segments = Segment[]
+    segments = Vector{Vector{Int64}}()
     sxs = sortperm(xs) # do this once
 
-    g, w = build_digraph(xs[sxs], ys[sxs], min_segment_length, max_rmse, overlap)
+    g, w = build_digraph(
+        xs[sxs],
+        ys[sxs],
+        min_segment_length,
+        fit_threshold,
+        fit_function,
+        overlap,
+    )
 
     path_edges = a_star(g, 1, length(xs), w)
     for edge in path_edges
@@ -47,10 +64,10 @@ function shortest_path(
         else
             jj = j - 1
         end
-        push!(segments, Segment(sxs[i:jj]))
+        push!(segments, sxs[i:jj])
     end
 
-    segments, linear_segmentation(segments, xs, ys)
+    [(seg, linear_segmentation(seg, xs, ys)) for seg in segments]
 end
 
 """
@@ -61,10 +78,11 @@ segments that link indices. Enumerates all possible segments that are at least
 `min_segment_length` long. Weights are assigned by mean squared error of the
 linear fit. If rmse is bigger than `max_rmse`, then weight is set to `Inf`.
 """
-function build_digraph(xs, ys, min_segment_length, max_rmse, overlap)
+function build_digraph(xs, ys, min_segment_length, fit_threshold, fit_function, overlap)
 
     g = SimpleDiGraph(length(xs))
     weightmatrix = zeros(length(xs), length(xs))
+    threshold = fit_function == :r2 ? -fit_threshold : fit_threshold
 
     for j = 1:length(xs)
         for i = 1:length(xs)
@@ -73,8 +91,11 @@ function build_digraph(xs, ys, min_segment_length, max_rmse, overlap)
                 add_edge!(g, i, j) # i -> j
                 _xs = xs[i:jj]
                 _ys = ys[i:jj]
-                r = rmse(_xs, _ys, least_squares(_xs, _ys)...)
-                weightmatrix[i, j] = r > max_rmse ? Inf : r
+                w =
+                    fit_function == :r2 ? -rsquared(_xs, _ys, least_squares(_xs, _ys)...) :
+                    rmse(_xs, _ys, least_squares(_xs, _ys)...)
+
+                weightmatrix[i, j] = w > threshold ? Inf : w + 2.0 # add a constant offset to make r² all positive
             elseif i == j
                 weightmatrix[i, j] = 0.0
             else
