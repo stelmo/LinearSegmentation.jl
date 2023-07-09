@@ -1,7 +1,7 @@
 name = "LinearSegmentation"
 uuid = "dc48124f-afd3-49fa-9962-2c9cdaf82bd1"
 authors = ["St. Elmo Wilken <stelmozors@gmail.com> and contributors"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
