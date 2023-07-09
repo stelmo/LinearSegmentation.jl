@@ -18,13 +18,14 @@ GLM.jl corresponding to these segments.
 segs, fits = sliding_window(xs, ys; min_segment_length=1.2, max_rmse=0.15)
 ```
 
-See also: [`top_down`](@ref), [`graph_segmentation`](@ref).
+See also: [`top_down`](@ref), [`shortest_path`](@ref).
 """
 function sliding_window(
     xs,
     ys;
     min_segment_length = heuristic_min_segment_length(xs),
     max_rmse = 0.5,
+    overlap = true,
 )
     sxs = sortperm(xs) # increasing order
 
@@ -40,7 +41,7 @@ function sliding_window(
         lmfit = rmse(_xs, _ys, least_squares(xs, ys)...)
         if lmfit >= max_rmse
             push!(segments, Segment(sxs[start_idx:(current_idx-1)]))
-            start_idx = current_idx - 1 # start is previous end
+            start_idx = overlap ? current_idx - 1 : current_idx # start is previous end
         end
     end
 

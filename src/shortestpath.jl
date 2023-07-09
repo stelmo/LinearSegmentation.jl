@@ -18,26 +18,34 @@ GLM.jl corresponding to these segments.
 
 # Example
 ```
-segs, fits = graph_segmentation(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+segs, fits = shortest_path(xs, ys; min_segment_length=1.2, max_rmse=0.15)
 ```
 
 See also: [`sliding_window`](@ref), [`top_down`](@ref).
 """
-function graph_segmentation(
+function shortest_path(
     xs,
     ys;
     min_segment_length = heuristic_min_segment_length(xs),
     max_rmse = 0.5,
+    overlap = true,
 )
 
     segments = Segment[]
     sxs = sortperm(xs) # do this once
 
-    g, w = build_digraph(xs[sxs], ys[sxs], min_segment_length, max_rmse)
+    g, w = build_digraph(xs[sxs], ys[sxs], min_segment_length, max_rmse, overlap)
 
     path_edges = a_star(g, 1, length(xs), w)
     for edge in path_edges
-        push!(segments, Segment(sxs[edge.src:edge.dst]))
+        i = edge.src
+        j = edge.dst
+        if overlap || j == length(xs)
+            jj = j
+        else
+            jj = j - 1
+        end
+        push!(segments, Segment(sxs[i:jj]))
     end
 
     segments, linear_segmentation(segments, xs, ys)
@@ -51,17 +59,19 @@ segments that link indices. Enumerates all possible segments that are at least
 `min_segment_length` long. Weights are assigned by mean squared error of the
 linear fit. If rmse is bigger than `max_rmse`, then weight is set to `Inf`.
 """
-function build_digraph(xs, ys, min_segment_length, max_rmse)
+function build_digraph(xs, ys, min_segment_length, max_rmse, overlap)
 
     g = SimpleDiGraph(length(xs))
     weightmatrix = zeros(length(xs), length(xs))
 
     for j = 1:length(xs)
         for i = 1:length(xs)
-
-            if i < j && is_min_length(xs[i:j], min_segment_length)
+            jj = overlap ? j : j - 1
+            if i < j && i < jj && is_min_length(xs[i:jj], min_segment_length)
                 add_edge!(g, i, j) # i -> j
-                r = rmse(xs[i:j], ys[i:j], least_squares(xs[i:j], ys[i:j])...)
+                _xs = xs[i:jj]
+                _ys = ys[i:jj]
+                r = rmse(_xs, _ys, least_squares(_xs, _ys)...)
                 weightmatrix[i, j] = r > max_rmse ? Inf : r
             elseif i == j
                 weightmatrix[i, j] = 0.0

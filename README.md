@@ -22,6 +22,7 @@ segments, glm_fits = segmentation_function(
     y_values; 
     min_segment_length = minimum_segment_x_length, 
     max_rmse = maximum_root_mean_squared_error,
+    overlap = true,
 )
 ```
 Where each `segment` in `segments` is a type of `LinearSegmentation.Segment`,
@@ -31,7 +32,9 @@ Corresponding to each `segment` is a `GLM.LinearModel` (see
 model to the `segment`. Minimum segment lengths are specified with
 `min_segment_length` and maximum allowed root mean square error for a segment is
 set with `max_rmse`. Both of these kwargs have large effects on the segmentation
---- play around to see what works best for your data.
+--- play around to see what works best for your data. By default, the end of a
+segment is also the start of the next segment, but this can be changed by
+setting `overlap` to `false` (resulting in disjoint segmentations).
 
 ## Generate some data
 ```julia
@@ -75,7 +78,7 @@ end
 ```
 ![Top down segmentation](imgs/top_down.png)
 
-## Graph segmentation
+## Shortest Path segmentation
 This algorithm is my take on the dynamic programming approaches used by the R
 packages listed below. In essence, a weighted directional graph is constructed,
 where each node corresponds to an index of `xs`, and the weight corresponds to
@@ -85,11 +88,11 @@ with `Graphs.a_star` (see
 [Graphs.jl](https://github.com/JuliaGraphs/Graphs.jl)), and should correspond to
 the best segmentation.
 ```julia
-segs, fits = graph_segmentation(xs, ys; min_segment_length=1.2, max_rmse=0.15)
+segs, fits = shortest_path(xs, ys; min_segment_length=1.2, max_rmse=0.15)
 
 # similar plotting as before can be done here...
 ```
-![Graph segmentation](imgs/graph_segmentation.png)
+![Shortest Path segmentation](imgs/shortest_path.png)
 
 ## Other useful resources
 1. https://cran.r-project.org/web/packages/dpseg/vignettes/dpseg.html

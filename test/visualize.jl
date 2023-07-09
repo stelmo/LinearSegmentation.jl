@@ -5,11 +5,12 @@ using CairoMakie, GLM, ColorSchemes
 # settings
 min_segment_length = 1.2
 max_rmse = 0.15
+rng = MersenneTwister(345)
 
 # generate data
 N = 100
-xs = collect(range(0, 3 * pi, length = N)) .+ 0.1 .* randn(N)
-ys = sin.(xs) .+ 0.1 .* randn(N)
+xs = collect(range(0, 3 * pi, length = N)) .+ 0.1 .* randn(rng, N)
+ys = sin.(xs) .+ 0.1 .* randn(rng, N)
 
 fig = Figure()
 ax = Axis(fig[1, 1])
@@ -31,7 +32,7 @@ fig
 CairoMakie.FileIO.save("imgs/sliding_window.png", fig)
 
 # topdown
-segs, fits = top_down(xs, ys; min_segment_length, max_rmse)
+segs, fits = top_down(xs, ys; min_segment_length, max_rmse, overlap = true)
 
 fig = Figure()
 ax = Axis(fig[1, 1])
@@ -45,7 +46,7 @@ fig
 CairoMakie.FileIO.save("imgs/top_down.png", fig)
 
 # shortestpath (works less nicely on very noisy data)
-segs, fits = graph_segmentation(xs, ys; min_segment_length, max_rmse)
+segs, fits = shortest_path(xs, ys; min_segment_length, max_rmse)
 
 fig = Figure()
 ax = Axis(fig[1, 1])
@@ -57,4 +58,4 @@ for (i, (seg, fit)) in enumerate(zip(segs, fits))
     lines!(ax, _xs, _ys; color = ColorSchemes.tableau_10[i], linewidth = 8)
 end
 fig
-CairoMakie.FileIO.save("imgs/graph_segmentation.png", fig)
+CairoMakie.FileIO.save("imgs/shortest_path.png", fig)

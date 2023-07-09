@@ -24,6 +24,6 @@ ys = sin.(xs)
     @testset "Segmentation " begin
         include("slidingwindow.jl")
         include("topdown.jl")
-        include("graph_segmentation.jl")
+        include("shortestpath.jl")
     end
 end
