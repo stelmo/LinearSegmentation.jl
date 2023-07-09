@@ -26,7 +26,7 @@ ys = sin.(xs)
     max_rmse = $max_rmse,
 ) # 102.880 ms ± 2.391 ms
 
-@benchmark graph_segmentation(
+@benchmark shortest_path(
     $xs,
     $ys;
     min_segment_length = $min_segment_length,

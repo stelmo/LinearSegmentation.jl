@@ -70,7 +70,7 @@ x and y pair is returned since the fit is a straight line.
 
 # Example
 ```
-segs, fits = graph_segmentation(xs, ys)
+segs, fits = shortest_path(xs, ys)
 for (_xs, _ys) in xygroups(segs, fits, xs)
     lines!(ax, _xs, _ys) # Makie plotting
 end
@@ -99,7 +99,7 @@ information returned.
 
 # Example
 ```
-segs, fits = graph_segmentation(xs, ys)
+segs, fits = shortest_path(xs, ys)
 for (_xs, _ys, _lbs, _ubs) in xyboundgroups(segs, fits, xs)
     lines!(ax, _xs, _ys) # Makie plotting
     band!(ax, _xs, _lbs, _ubs)

@@ -5,10 +5,12 @@ Segment `xs` into sections based on the root mean square error using `ys`.
 Builds a directed graph where nodes are the x-data points, and the edges are the
 root mean square error of fitting a linear model between these nodes. Nodes are
 connected only if their minimum length is greater than `min_segment_length` and
-the error between them is less than `max_rmse`. Thereafter, the path spanning
-the entire dataset with the lowest total error is found using the A-star
-algorithm. This more-or-less corresponds to a the dynamic programming approach
-used by other segmentation algorithms. 
+the error between them is less than `max_rmse`. By default, the end of a segment
+is also the start of the next segment, but this can be changed by setting
+`overlap` to `false` (resulting in disjoint segmentations). Thereafter, the path
+spanning the entire dataset with the lowest total error is found using the
+A-star algorithm. This more-or-less corresponds to a the dynamic programming
+approach used by other segmentation algorithms. 
 
 Sorts data internally as a precomputation step. This is the slowest algorithm,
 but *should* return the optimal segmentation.

@@ -5,7 +5,10 @@ Segment `xs` into sections, which are at least longer than `min_segment_length`,
 and that have a root mean squared error (based on a linear fit) less than
 `max_rmse`. Uses a sliding window approach to segment the data: initially an
 empty segment is made, and data added to it until `max_rmse` is reached. Then a
-new segment is made, and the process repeats until the data is exhausted.
+new segment is made, and the process repeats until the data is exhausted.  By
+default, the end of a segment is also the start of the next segment, but this
+can be changed by setting `overlap` to `false` (resulting in disjoint
+segmentations).
 
 Sorts data internally as a precomputation step. Fastest segmentation algorithm
 implemented, but also the least accurate.

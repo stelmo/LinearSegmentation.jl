@@ -8,7 +8,7 @@
 This is a small package that performs linear segmented regression: fitting
 piecewise linear functions to data, and simultaneously estimating the best
 breakpoints. Three algorithm are implemented, `sliding_window`, `top_down`, and
-`graph_segmentation`.
+`shortest_path`.
 
 Convenience functions `xygroups` and `xyboundgroups` are also supplied to make
 plotting easier.
@@ -78,8 +78,8 @@ end
 ```
 ![Top down segmentation](imgs/top_down.png)
 
-## Shortest Path segmentation
-This algorithm is my take on the dynamic programming approaches used by the R
+## Shortest path
+This algorithm is *my take* on the dynamic programming approaches used by the R
 packages listed below. In essence, a weighted directional graph is constructed,
 where each node corresponds to an index of `xs`, and the weight corresponds to
 the rmse of the fit between two nodes (segment length restrictions and maximum

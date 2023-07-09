@@ -5,7 +5,9 @@ Segment `xs` based on the root mean square error of a linear fit using `ys`.
 Recursively splits the data into two parts with the lowest root mean square
 error, while obeying the minimum segment length restrictions from
 `min_segment_length`, and maximum allowed error from `max_rmse`. Sorts data
-internally as a precomputation step.
+internally as a precomputation step.  By default, the end of a segment is also
+the start of the next segment, but this can be changed by setting `overlap` to
+`false` (resulting in disjoint segmentations).
 
 Returns an array of [`Segment`](@ref)s, and an array of `LinearModel`s from
 GLM.jl corresponding to these segments.
