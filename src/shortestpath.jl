@@ -43,6 +43,7 @@ function shortest_path(
     overlap = true,
 )
 
+    len_xs = length(xs)
     segments = Vector{Vector{Int64}}()
     sxs = sortperm(xs) # do this once
 
@@ -55,11 +56,11 @@ function shortest_path(
         overlap,
     )
 
-    path_edges = a_star(g, 1, length(xs), w)
+    path_edges = a_star(g, 1, len_xs, w)
     for edge in path_edges
         i = edge.src
         j = edge.dst
-        if overlap || j == length(xs)
+        if overlap || j == len_xs
             jj = j
         else
             jj = j - 1
@@ -80,13 +81,14 @@ linear fit. If rmse is bigger than `max_rmse`, then weight is set to `Inf`.
 """
 function build_digraph(xs, ys, min_segment_length, fit_threshold, fit_function, overlap)
 
-    g = SimpleDiGraph(length(xs))
-    weightmatrix = zeros(length(xs), length(xs))
+    len_xs = length(xs)
+    g = SimpleDiGraph(len_xs)
+    weightmatrix = zeros(len_xs, len_xs)
     threshold = fit_function == :r2 ? -fit_threshold : fit_threshold
 
-    for j = 1:length(xs)
-        for i = 1:length(xs)
-            jj = overlap ? j : j - 1
+    for j in eachindex(xs)
+      jj = overlap ? j : j - 1
+        for i in eachindex(xs)
             if i < j && i < jj && is_min_length(xs[i:jj], min_segment_length)
                 add_edge!(g, i, j) # i -> j
                 _xs = xs[i:jj]
