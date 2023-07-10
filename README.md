@@ -83,11 +83,12 @@ end
 
 ## Shortest path
 This algorithm is *my take* on the dynamic programming approaches used by the R
-packages listed below. In essence, a weighted directional graph is constructed,
-where each node corresponds to an index of `xs`, and the edge weight between
-nodes corresponds to the goodness-of-fit measure between the two nodes (segment
-length restrictions and maximum error are both incorporated). The shortest
-weighted path that spans `xs` is the found with `Graphs.a_star` (see
+packages listed below (NB: not equivalent implementations!). In essence, a
+weighted directional graph is constructed, where each node corresponds to an
+index of `xs`, and the edge weight between nodes corresponds to the
+goodness-of-fit measure between the two nodes (segment length restrictions and
+maximum error are both incorporated). The shortest weighted path that spans `xs`
+is the found with `Graphs.a_star` (see
 [Graphs.jl](https://github.com/JuliaGraphs/Graphs.jl)), and should correspond to
 the best segmentation.
 ```julia

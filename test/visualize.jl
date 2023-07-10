@@ -2,6 +2,8 @@ using LinearSegmentation
 using Random
 using CairoMakie, GLM, ColorSchemes
 
+set_theme!(palette = (color = ColorSchemes.tableau_10,))
+
 # settings
 min_segment_length = 1.2
 max_rmse = 0.15
@@ -23,15 +25,15 @@ fig = Figure()
 ax = Axis(fig[1, 1], title = "overlap=true")
 
 segments = sliding_window(xs, ys; min_segment_length, fit_threshold = 0.90)
-for (i, (_xs, _ys)) in enumerate(xygroups(segments, xs))
-    lines!(ax, _xs, _ys; color = ColorSchemes.tableau_10[i], linewidth = 8)
+for (_xs, _ys) in xygroups(segments, xs)
+    lines!(ax, _xs, _ys; linewidth = 8)
 end
 scatter!(ax, xs, ys; color = :black)
 
 ax2 = Axis(fig[1, 2], title = "overlap=false")
 segments = sliding_window(xs, ys; min_segment_length, overlap = false)
-for (i, (_xs, _ys)) in enumerate(xygroups(segments, xs))
-    lines!(ax2, _xs, _ys; color = ColorSchemes.tableau_10[i], linewidth = 8)
+for (_xs, _ys) in xygroups(segments, xs)
+    lines!(ax2, _xs, _ys; linewidth = 8)
 end
 scatter!(ax2, xs, ys; color = :black)
 
@@ -65,15 +67,15 @@ fig = Figure()
 
 ax = Axis(fig[1, 1], title = "overlap=true")
 segments = shortest_path(xs, ys; min_segment_length)
-for (i, (_xs, _ys)) in enumerate(xygroups(segments, xs))
-    lines!(ax, _xs, _ys; color = ColorSchemes.tableau_10[i], linewidth = 8)
+for (_xs, _ys) in xygroups(segments, xs)
+    lines!(ax, _xs, _ys; linewidth = 8)
 end
 scatter!(ax, xs, ys; color = :black)
 
 ax2 = Axis(fig[1, 2], title = "overlap=false")
 segments = shortest_path(xs, ys; min_segment_length, overlap = false)
-for (i, (_xs, _ys)) in enumerate(xygroups(segments, xs))
-    lines!(ax2, _xs, _ys; color = ColorSchemes.tableau_10[i], linewidth = 8)
+for (_xs, _ys) in xygroups(segments, xs)
+    lines!(ax2, _xs, _ys; linewidth = 8)
 end
 scatter!(ax2, xs, ys; color = :black)
 

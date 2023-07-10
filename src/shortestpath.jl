@@ -1,7 +1,6 @@
 """
 $(TYPEDSIGNATURES)
 
-
 Partition `xs` into segments that are at least longer than `min_segment_length`,
 and that have a fit better than `fit_threshold`. By default, the goodness-of-fit
 is measured using the coefficient of determination. Each segment must have a
@@ -21,7 +20,8 @@ dataset is found using the A-star algorithm. This more-or-less corresponds to
 the dynamic programming approach used by other segmentation algorithms. 
 
 Sorts data internally as a precomputation step. This is the slowest algorithm,
-but *should* return the optimal segmentation.
+but should return a segmentation where the segments are as long as possible,
+balanced against their fit.
 
 Returns an array of tuples `[(idxs1, linmod1), ...]`, where `idxs1` are the
 indices of `xs` in the segment, and `linmod1` is the corresponding `LinearModel`
