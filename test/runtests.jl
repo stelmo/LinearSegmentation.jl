@@ -1,6 +1,5 @@
 using LinearSegmentation
 using Test
-using Random
 using Graphs, GLM
 
 # test settings

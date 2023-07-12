@@ -60,10 +60,10 @@ function shortest_path(
     for edge in path_edges
         i = edge.src
         j = edge.dst
-        if overlap || j == len_xs
+        if overlap
             jj = j
         else
-            jj = j - 1
+            jj = j == len_xs ? j : j - 1
         end
         push!(segments, sxs[i:jj])
     end
