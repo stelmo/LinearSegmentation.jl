@@ -11,11 +11,7 @@
     @test isapprox(LinearSegmentation.rmse(xs, ys, b0, b1), 0.1455149585939639; atol)
     @test isapprox(LinearSegmentation.rsquared(xs, ys, b0, b1), 0.9929135845097545; atol)
 
-    @test isapprox(
-        LinearSegmentation.heuristic_min_segment_length(xs),
-        0.5;
-        atol,
-    )
+    @test isapprox(LinearSegmentation.heuristic_min_segment_length(xs), 0.5; atol)
 
     @test !LinearSegmentation.is_min_length(xs[1:2], 3)
     @test LinearSegmentation.is_min_length(xs[1:2], 1)
