@@ -23,16 +23,17 @@ segments = segmentation_function(
     overlap = true,
 )
 ```
-Where `[idxs1, idxs2, ...]` is an array of indices, where `idxs1` corresponds to
-the indices of `xs` in the first segment, `idxs2` the second segment, etc.
-Minimum segment lengths are specified with `min_segment_length`. By default, the
-goodness-of-fit is measured using the coefficient of determination. Each segment
-must have a minimum R² of `fit_threshold`. Root mean squared error can also be
-used by setting `fit_function = :rmse`, and adjusting `fit_threshold` to a
-dataset dependent error threshold. In this case, the root mean squared error
-must be smaller than `fit_threshold` for each segment. By default, the end of a
-segment is also the start of the next segment, but this can be changed by
-setting `overlap` to `false` (resulting in disjoint segmentations).
+Where `segments = [idxs1, idxs2, ...]` is an array of indices, with `idxs1`
+corresponding to the indices of `xs` in the first segment, `idxs2` the second
+segment, etc. Minimum segment lengths are specified with `min_segment_length`.
+By default, the goodness-of-fit is measured using the coefficient of
+determination (R²). Each segment must have a minimum R² of `fit_threshold`. Root
+mean squared error can also be used by setting `fit_function = :rmse`, and
+adjusting `fit_threshold` to a dataset dependent error threshold. In this case,
+the root mean squared error must be smaller than `fit_threshold` for each
+segment. By default, the end of a segment is also the start of the next segment,
+but this can be changed by setting `overlap` to `false` (resulting in disjoint
+segmentations).
 
 ## Generate some data
 ```julia
