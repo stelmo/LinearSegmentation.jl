@@ -23,9 +23,8 @@ Sorts data internally as a precomputation step. This is the slowest algorithm,
 but should return a segmentation where the segments are as long as possible,
 balanced against their fit.
 
-Returns an array of tuples `[(idxs1, linmod1), ...]`, where `idxs1` are the
-indices of `xs` in the segment, and `linmod1` is the corresponding `LinearModel`
-from GLM.jl.
+Returns an array of indices `[idxs1, ...]`, where `idxs1` are the indices of
+`xs` in the first segment, etc.
 
 # Example
 ```
@@ -68,7 +67,7 @@ function shortest_path(
         push!(segments, sxs[i:jj])
     end
 
-    [(seg, linear_segmentation(seg, xs, ys)) for seg in segments]
+    segments
 end
 
 """
@@ -87,7 +86,7 @@ function build_digraph(xs, ys, min_segment_length, fit_threshold, fit_function, 
     threshold = fit_function == :r2 ? -fit_threshold : fit_threshold
 
     for j in eachindex(xs)
-      jj = overlap ? j : j - 1
+        jj = overlap ? j : j - 1
         for i in eachindex(xs)
             if i < j && i < jj && is_min_length(xs[i:jj], min_segment_length)
                 add_edge!(g, i, j) # i -> j
@@ -97,7 +96,7 @@ function build_digraph(xs, ys, min_segment_length, fit_threshold, fit_function, 
                     fit_function == :r2 ? -rsquared(_xs, _ys, least_squares(_xs, _ys)...) :
                     rmse(_xs, _ys, least_squares(_xs, _ys)...)
 
-                weightmatrix[i, j] = w > threshold ? Inf : w + 2.0 # add a constant offset to make r² all positive
+                weightmatrix[i, j] = w > threshold ? Inf : w + 1.0 # add a constant offset to make r² all positive
             elseif i == j
                 weightmatrix[i, j] = 0.0
             else

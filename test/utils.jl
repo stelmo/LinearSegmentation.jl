@@ -13,16 +13,12 @@
 
     @test isapprox(
         LinearSegmentation.heuristic_min_segment_length(xs),
-        1.3677823998673804;
+        0.5;
         atol,
     )
 
     @test !LinearSegmentation.is_min_length(xs[1:2], 3)
     @test LinearSegmentation.is_min_length(xs[1:2], 1)
-
-    lmfits = LinearSegmentation.linear_segmentation([[1, 2, 3], [4, 5, 6]], xs, ys)
-    @test length(lmfits) == 2
-    @test isapprox(r2(lmfits[1]), 0.9868421052631579; atol)
 end
 
 

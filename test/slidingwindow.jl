@@ -8,8 +8,9 @@
     )
 
     @test length(segments) == 4
-    @test isapprox(r2(last(last(segments))), 0.9926778131496851; atol)
-    @test N != length(reduce(vcat, [first(seg) for seg in segments]))
+    b0, b1 = LinearSegmentation.least_squares(xs[last(segments)], ys[last(segments)])
+    @test isapprox(LinearSegmentation.rsquared(xs[last(segments)], ys[last(segments)], b0, b1), 0.9926778131496851; atol)
+    @test N != length(reduce(vcat, segments))
 
     # test root mean square
     segments = sliding_window(
@@ -21,8 +22,9 @@
     )
 
     @test length(segments) == 4
-    @test isapprox(first(residuals(last(last(segments)))), -0.13477208456216216; atol)
-    @test N != length(reduce(vcat, [first(seg) for seg in segments]))
+    b0, b1 = LinearSegmentation.least_squares(xs[first(segments)], ys[first(segments)])
+    @test isapprox(LinearSegmentation.rmse(xs[first(segments)], ys[first(segments)], b0, b1), 0.09975406785624195; atol)
+    @test N != length(reduce(vcat, segments))
 
     segments = sliding_window(
         xs,
@@ -32,5 +34,5 @@
         fit_function = :rmse,
         overlap = false,
     )
-    @test N == length(reduce(vcat, [first(seg) for seg in segments]))
+    @test N == length(reduce(vcat, segments))
 end

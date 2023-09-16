@@ -16,9 +16,8 @@ Sorts data internally as a precomputation step.  By default, the end of a
 segment is also the start of the next segment, but this can be changed by
 setting `overlap` to `false` (resulting in disjoint segmentations).
 
-Returns an array of tuples `[(idxs1, linmod1), ...]`, where `idxs1` are the
-indices of `xs` in the segment, and `linmod1` is the corresponding `LinearModel`
-from GLM.jl.
+Returns an array of indices `[idxs1, ...]`, where `idxs1` are the indices of
+`xs` in the first segment, etc.
 
 # Example
 ```
@@ -51,7 +50,7 @@ function top_down(
         overlap,
     )
 
-    [(seg, linear_segmentation(seg, xs, ys)) for seg in segments]
+    segments
 end
 
 function _top_down!(

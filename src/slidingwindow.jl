@@ -19,9 +19,8 @@ segmentations).
 Sorts data internally as a precomputation step. Fastest segmentation algorithm
 implemented, but also the least accurate.
 
-Returns an array of tuples `[(idxs1, linmod1), ...]`, where `idxs1` are the
-indices of `xs` in the segment, and `linmod1` is the corresponding `LinearModel`
-from GLM.jl.
+Returns an array of indices `[idxs1, ...]`, where `idxs1` are the indices of
+`xs` in the first segment, etc.
 
 # Example
 ```
@@ -63,5 +62,5 @@ function sliding_window(
     # clean up
     push!(segments, sxs[start_idx:end])
 
-    [(seg, linear_segmentation(seg, xs, ys)) for seg in segments]
+    segments
 end

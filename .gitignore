@@ -1,3 +1,6 @@
 /Manifest.toml
 
 temp*
+
+test/speed.jl
+test/visualize.jl

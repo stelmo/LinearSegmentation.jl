@@ -2,7 +2,8 @@
     #r2
     segments = shortest_path(xs, ys; min_segment_length)
     @test length(segments) == 4
-    @test isapprox(r2(last(last(segments))), 0.9787001222049421; atol)
+    b0, b1 = LinearSegmentation.least_squares(xs[last(segments)], ys[last(segments)])
+    @test isapprox(LinearSegmentation.rsquared(xs[last(segments)], ys[last(segments)], b0, b1), 0.9787001222049421; atol)
 
     # rmse
     segments = shortest_path(
@@ -13,8 +14,9 @@
         fit_function = :rmse,
     )
     @test length(segments) == 4
-    @test isapprox(first(residuals(last(last(segments)))), -0.13477208456216216; atol)
-    @test N != length(reduce(vcat, [first(seg) for seg in segments]))
+    b0, b1 = LinearSegmentation.least_squares(xs[first(segments)], ys[first(segments)])
+    @test isapprox(LinearSegmentation.rmse(xs[first(segments)], ys[first(segments)], b0, b1), 0.06440621325389449; atol)
+    @test N != length(reduce(vcat, segments))
 
     segments = shortest_path(
         xs,
@@ -24,5 +26,5 @@
         fit_function = :rmse,
         overlap = false,
     )
-    @test N == length(reduce(vcat, [first(seg) for seg in segments]))
+    @test N == length(reduce(vcat, segments))
 end

@@ -1,22 +1,19 @@
 name = "LinearSegmentation"
 uuid = "dc48124f-afd3-49fa-9962-2c9cdaf82bd1"
 authors = ["St. Elmo Wilken <stelmozors@gmail.com> and contributors"]
-version = "0.2.2"
+version = "0.3.0"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
-GLM = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 DocStringExtensions = "0.9"
-GLM = "1.8"
 Graphs = "1.8"
 julia = "1.9"
 
 [extras]
-Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]

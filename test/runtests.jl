@@ -1,6 +1,6 @@
 using LinearSegmentation
 using Test
-using Graphs, GLM
+using Graphs
 
 # test settings
 atol = 1e-6
