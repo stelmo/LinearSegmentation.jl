@@ -2,5 +2,5 @@
 
 temp*
 
-test/speed.jl
-test/visualize.jl
+etc/speed.jl
+etc/visualize.jl
