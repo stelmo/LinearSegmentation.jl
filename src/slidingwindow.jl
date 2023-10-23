@@ -14,7 +14,8 @@ is made, and data added to it until `fit_threshold` is reached. Then a new
 segment is made, and the process repeats until the data is exhausted.  By
 default, the end of a segment is also the start of the next segment, but this
 can be changed by setting `overlap` to `false` (resulting in disjoint
-segmentations). 
+segmentations). Optionally, if `continuous=true` then the regression lines are
+connected.
 
 Sorts data internally as a precomputation step. Fastest segmentation algorithm
 implemented, but also the least accurate.
@@ -36,6 +37,7 @@ function sliding_window(
     fit_threshold = 0.9,
     fit_function = :r2,
     overlap = true,
+    continuous = false,
 )
     sxs = sortperm(xs) # increasing order
 
@@ -48,13 +50,16 @@ function sliding_window(
 
         is_min_length(_xs, min_segment_length) || continue
 
+        regressor = continuous ? endpoints : least_squares
+
         lmfit, threshold =
             fit_function == :r2 ?
-            (-rsquared(_xs, _ys, least_squares(_xs, _ys)...), -fit_threshold) :
-            (rmse(_xs, _ys, least_squares(_xs, _ys)...), fit_threshold)
+            (-rsquared(_xs, _ys, regressor(_xs, _ys)...), -fit_threshold) :
+            (rmse(_xs, _ys, regressor(_xs, _ys)...), fit_threshold)
 
         if lmfit >= threshold
             push!(segments, sxs[start_idx:(current_idx-1)])
+            continuous && (overlap = true)
             start_idx = overlap ? current_idx - 1 : current_idx # start is previous end
         end
     end
@@ -64,3 +69,4 @@ function sliding_window(
 
     segments
 end
+

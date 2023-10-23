@@ -53,3 +53,23 @@ function rsquared(xs, ys, b0, b1)
     ymean = mean(ys)
     1 - sum((y - b0 - b1 * x)^2 for (x, y) in zip(xs, ys)) / sum((y - ymean)^2 for y in ys)
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Fit a straight line between the endpoints of `xs` and `ys`. 
+"""
+function endpoints(xs, ys)
+
+    x0 = first(xs)
+    y0 = first(ys)
+
+    xn = last(xs)
+    yn = last(ys)
+
+    A = [x0 1;xn 1]
+    b = [y0, yn]
+    b1, b0 = A\b
+
+    b0, b1
+end
